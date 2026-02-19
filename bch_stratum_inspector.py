@@ -474,7 +474,7 @@ def query_pool(pool_name: str, host: str, port: int) -> bool:
         ver_int = int(ver_hex, 16)
         diff_str, _ = nbits_to_difficulty(nbits_hex)
         try:
-            ts = datetime.datetime.utcfromtimestamp(int(ntime_hex, 16)).strftime('%Y-%m-%d %H:%M:%S UTC')
+            ts = datetime.datetime.fromtimestamp(int(ntime_hex, 16), datetime.UTC).strftime('%Y-%m-%d %H:%M:%S UTC')
         except Exception:
             ts = 'N/A'
 
