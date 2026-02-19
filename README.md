@@ -126,17 +126,17 @@ If you're pointed at a "BTC solo pool" but this tool shows its Stratum endpoint 
 ## How It Works
 
 ```
-┌─────────┐   Stratum    ┌───────────┐
-│  Script │◄────────────►│ BCH Pool  │
-└────┬────┘  TCP/JSON     └───────────┘
+┌──────────┐  Stratum   ┌────────────┐
+│  Script  │◄──────────►│  BCH Pool  │
+└────┬─────┘  TCP/JSON  └────────────┘
      │
      ▼
- 1. mining.subscribe  → get ExtraNonce
- 2. mining.authorize  → authenticate worker
- 3. mining.notify     → receive block template
+ 1. mining.subscribe  →  get ExtraNonce
+ 2. mining.authorize  →  authenticate worker
+ 3. mining.notify     →  receive block template
      │
      ▼
- Reconstruct coinbase tx → Decode outputs → Show who gets paid
+ Reconstruct coinbase tx  →  Decode outputs  →  Show who gets paid
 ```
 
 The coinbase transaction is the first transaction in every block.  It has no real inputs — instead, the `scriptSig` encodes the block height (BIP-34) and a pool identification tag.  The **outputs** determine who receives the block reward.

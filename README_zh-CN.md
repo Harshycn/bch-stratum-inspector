@@ -126,17 +126,17 @@ python bch_stratum_inspector.py harshy
 ## 工作原理
 
 ```
-┌─────────┐   Stratum    ┌───────────┐
-│  脚本   │◄────────────►│ BCH 矿池  │
-└────┬────┘  TCP/JSON     └───────────┘
+┌──────────┐  Stratum   ┌────────────┐
+│   脚本   │◄──────────►│  BCH 矿池  │
+└────┬─────┘  TCP/JSON  └────────────┘
      │
      ▼
- 1. mining.subscribe  → 获取 ExtraNonce
- 2. mining.authorize  → 认证矿工
- 3. mining.notify     → 接收区块模板
+ 1. mining.subscribe  →  获取 ExtraNonce
+ 2. mining.authorize  →  认证矿工
+ 3. mining.notify     →  接收区块模板
      │
      ▼
- 重建 Coinbase 交易 → 解码输出 → 显示谁拿了钱
+ 重建 Coinbase 交易  →  解码输出  →  显示谁拿了钱
 ```
 
 Coinbase 交易是每个区块的第一笔交易。它没有真正的输入 — `scriptSig` 里编码了区块高度 (BIP-34) 和矿池标识标签。**输出**决定了谁获得区块奖励。
