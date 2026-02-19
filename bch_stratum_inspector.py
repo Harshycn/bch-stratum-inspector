@@ -15,8 +15,12 @@ and decodes the coinbase transaction so you can inspect:
 No external dependencies — pure Python 3 standard library.
 
 Usage:
-    python bch_stratum_inspector.py              # inspect all configured pools
-    python bch_stratum_inspector.py <pool_name>  # inspect a single pool
+    python bch_stratum_inspector.py                              # all pools
+    python bch_stratum_inspector.py harshy                       # single pool
+    python bch_stratum_inspector.py --host example.com --port 3333  # custom
+    python bch_stratum_inspector.py --worker bitcoincash:q... harshy
+    python bch_stratum_inspector.py --list                       # show pools
+    python bch_stratum_inspector.py --debug harshy               # verbose
 
 Author : Harshy  (https://harshy.site/)
 License: MIT
@@ -28,6 +32,7 @@ import struct
 import hashlib
 import sys
 import datetime
+import argparse
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  Configuration
@@ -51,12 +56,14 @@ POOLS = {
     'millpools':    ('bch.millpools.cc',         6567),
 }
 
-# Worker credentials (used for Stratum authorization)
-WORKER   = 'bitcoincash:qp3wjpa3tjlj042z2wv7hahsldgwhwy0rq9sywjpyy'
-PASSWORD = 'x'
+# Default worker credentials (can be overridden via --worker / --password)
+DEFAULT_WORKER   = 'bitcoincash:qp3wjpa3tjlj042z2wv7hahsldgwhwy0rq9sywjpyy'
+DEFAULT_PASSWORD = 'x'
 
-# Set to True to print all raw Stratum messages for troubleshooting
-DEBUG = False
+# Runtime config — populated by main()
+WORKER   = DEFAULT_WORKER
+PASSWORD = DEFAULT_PASSWORD
+DEBUG    = False
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -344,12 +351,17 @@ def _stratum_recv(sock, timeout=15):
                     try:
                         results.append(json.loads(line))
                     except json.JSONDecodeError:
-                        pass
+                        # Non-JSON response — could be an error banner (e.g. "IP Banned")
+                        text = line.decode('utf-8', errors='replace').strip()
+                        if text:
+                            print(f'[!] Non-JSON from pool: {text}')
             if results:
-                sock.settimeout(2)
+                sock.settimeout(3)
         except socket.timeout:
             break
-        except Exception:
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError, OSError) as e:
+            if DEBUG:
+                print(f'    [DEBUG] _stratum_recv network error: {type(e).__name__}: {e}')
             break
     return results
 
@@ -566,38 +578,100 @@ def query_pool(pool_name: str, host: str, port: int) -> bool:
 #  Entry Point
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _build_parser():
+    """Build the argparse CLI parser."""
+    p = argparse.ArgumentParser(
+        prog='bch_stratum_inspector',
+        description='BCH Stratum Inspector — mining pool transparency tool',
+        epilog='Examples:\n'
+               '  %(prog)s                              # query all preconfigured pools\n'
+               '  %(prog)s harshy                       # query a single preconfigured pool\n'
+               '  %(prog)s --host stratum.example.com --port 3333   # query a custom pool\n'
+               '  %(prog)s --worker bitcoincash:qxyz... harshy      # override worker address\n',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    p.add_argument('pool', nargs='?', default=None,
+                   help='preconfigured pool name (e.g. harshy, zsolo, 2miners)')
+    p.add_argument('--host', default=None,
+                   help='custom pool hostname (use with --port)')
+    p.add_argument('--port', type=int, default=None,
+                   help='custom pool port (use with --host)')
+    p.add_argument('-w', '--worker', default=None,
+                   help=f'worker address (default: {DEFAULT_WORKER[:30]}…)')
+    p.add_argument('-p', '--password', default=None,
+                   help='stratum password (default: x)')
+    p.add_argument('--debug', action='store_true',
+                   help='print raw Stratum messages for troubleshooting')
+    p.add_argument('--list', action='store_true',
+                   help='list all preconfigured pools and exit')
+    return p
+
+
 def main():
+    global WORKER, PASSWORD, DEBUG
+
+    parser = _build_parser()
+    args = parser.parse_args()
+
+    # Apply overrides
+    if args.worker:
+        WORKER = args.worker
+    if args.password:
+        PASSWORD = args.password
+    if args.debug:
+        DEBUG = True
+
     W = 68
     print()
     print('╔' + '═' * W + '╗')
     print('║' + '  BCH Stratum Inspector'.center(W) + '║')
     print('╚' + '═' * W + '╝')
 
-    if len(sys.argv) > 1:
-        name = sys.argv[1].lower()
+    # --list: show preconfigured pools
+    if args.list:
+        print(f'\n  Preconfigured pools ({len(POOLS)}):\n')
+        for name, (h, p) in POOLS.items():
+            print(f'    {name:<15s}  {h}:{p}')
+        print()
+        return
+
+    # --host/--port: custom pool
+    if args.host:
+        port = args.port or 3333
+        label = args.pool or 'custom'
+        query_pool(label, args.host, port)
+        return
+
+    # Positional: single preconfigured pool
+    if args.pool:
+        name = args.pool.lower()
         if name in POOLS:
             h, p = POOLS[name]
             query_pool(name, h, p)
         else:
-            print(f"\n[!] Unknown pool '{name}'. Available: {', '.join(POOLS)}")
-    else:
-        print(f'\n[*] Querying all {len(POOLS)} pools: {", ".join(POOLS)} …')
-        ok = fail = 0
-        for name, (h, p) in POOLS.items():
-            print('\n' + '▓' * (W + 2))
-            print(f'  ▶ {name.upper()} ({h}:{p})')
-            print('▓' * (W + 2))
-            if query_pool(name, h, p):
-                ok += 1
-            else:
-                fail += 1
+            print(f"\n[!] Unknown pool '{name}'.")
+            print(f'    Available: {", ".join(POOLS)}')
+            print(f'    Or use --host and --port to test a custom endpoint.')
+        return
 
-        print()
-        print('╔' + '═' * W + '╗')
-        print('║' + '  Summary'.center(W) + '║')
-        print('╠' + '═' * W + '╣')
-        print(f'║  Total: {len(POOLS)}  |  Success: {ok}  |  Failed: {fail}'.ljust(W) + '║')
-        print('╚' + '═' * W + '╝')
+    # No arguments: query all preconfigured pools
+    print(f'\n[*] Querying all {len(POOLS)} pools: {", ".join(POOLS)} …')
+    ok = fail = 0
+    for name, (h, p) in POOLS.items():
+        print('\n' + '▓' * (W + 2))
+        print(f'  ▶ {name.upper()} ({h}:{p})')
+        print('▓' * (W + 2))
+        if query_pool(name, h, p):
+            ok += 1
+        else:
+            fail += 1
+
+    print()
+    print('╔' + '═' * W + '╗')
+    print('║' + '  Summary'.center(W) + '║')
+    print('╠' + '═' * W + '╣')
+    print(f'║  Total: {len(POOLS)}  |  Success: {ok}  |  Failed: {fail}'.ljust(W) + '║')
+    print('╚' + '═' * W + '╝')
 
 
 if __name__ == '__main__':

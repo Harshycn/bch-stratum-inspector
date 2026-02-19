@@ -29,6 +29,18 @@ python bch_stratum_inspector.py
 
 # Query a specific pool
 python bch_stratum_inspector.py harshy
+
+# Test a custom pool (no need to edit source)
+python bch_stratum_inspector.py --host stratum.example.com --port 3333
+
+# Override worker address
+python bch_stratum_inspector.py --worker bitcoincash:qxyz... harshy
+
+# List all preconfigured pools
+python bch_stratum_inspector.py --list
+
+# Debug mode (show raw Stratum messages)
+python bch_stratum_inspector.py --debug harshy
 ```
 
 ## Preconfigured Pools

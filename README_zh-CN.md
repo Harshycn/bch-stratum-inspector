@@ -29,6 +29,18 @@ python bch_stratum_inspector.py
 
 # 查询指定矿池
 python bch_stratum_inspector.py harshy
+
+# 测试自定义矿池（无需修改源码）
+python bch_stratum_inspector.py --host stratum.example.com --port 3333
+
+# 覆盖矿工地址
+python bch_stratum_inspector.py --worker bitcoincash:qxyz... harshy
+
+# 列出所有预配置矿池
+python bch_stratum_inspector.py --list
+
+# 调试模式（显示原始 Stratum 消息）
+python bch_stratum_inspector.py --debug harshy
 ```
 
 ## 预配置矿池
