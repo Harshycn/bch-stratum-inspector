@@ -2,7 +2,7 @@
 
 # BCH Stratum Inspector
 
-面向 Bitcoin Cash 矿工的**透明度工具**。通过 Stratum 协议连接矿池，获取区块模板，解码 Coinbase 交易 — 让你清楚看到区块奖励的分配情况。
+面向 Bitcoin Cash 矿工的**透明度工具**。通过 Stratum 协议（支持 TCP 和 TLS 加密连接）连接矿池，获取区块模板，解码 Coinbase 交易 — 让你清楚看到区块奖励的分配情况。
 
 ## 动机
 
@@ -19,6 +19,7 @@ Solo 挖矿中，矿工期望区块奖励直接进入自己的地址，或进入
 | **区块元数据** | 高度 (BIP-34)、奖励、前一区块哈希（浏览器格式） |
 | **难度显示** | nBits → 人类可读值 (K/M/G/T/P/E) |
 | **多矿池** | 一次查询所有配置矿池，或命令行指定单个 |
+| **TLS 自动检测** | 自动尝试 TLS 连接，失败自动回退到 TCP — 零配置 |
 | **零依赖** | 纯 Python 标准库，无需安装 |
 
 ## 快速开始
@@ -140,7 +141,7 @@ python bch_stratum_inspector.py --debug harshy
 ```
 ┌──────────┐  Stratum   ┌────────────┐
 │   脚本   │◄──────────►│  BCH 矿池  │
-└────┬─────┘  TCP/JSON  └────────────┘
+└────┬─────┘ TCP 或 TLS └────────────┘
      │
      ▼
  1. mining.subscribe  →  获取 ExtraNonce

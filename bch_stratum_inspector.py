@@ -27,6 +27,7 @@ License: MIT
 """
 
 import socket
+import ssl
 import json
 import struct
 import hashlib
@@ -319,12 +320,28 @@ def stratum_prevhash_to_blockchain(prevhash_hex: str) -> str:
 
 
 def _tcp_connect(host: str, port: int) -> socket.socket:
-    """Open a plain TCP connection with a 30-second timeout."""
-    print(f'[*] Connecting to {host}:{port} …')
+    """Open a connection with auto TLS detection. Try TLS first, fallback to plain TCP."""
+    # Try TLS first (short timeout to avoid delay on non-TLS ports)
+    try:
+        if DEBUG:
+            print(f'[*] Connecting to {host}:{port} (trying TLS) …')
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(5)
+        ctx = ssl.create_default_context()
+        s = ctx.wrap_socket(s, server_hostname=host)
+        s.connect((host, port))
+        s.settimeout(30)
+        print(f'[+] Connected to {host}:{port} (TLS ✓)')
+        return s
+    except (ssl.SSLError, OSError):
+        pass
+    # Fallback to plain TCP
+    if DEBUG:
+        print(f'[*] TLS unavailable, falling back to TCP …')
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(30)
     s.connect((host, port))
-    print('[+] Connected')
+    print(f'[+] Connected to {host}:{port} (TCP)')
     return s
 
 

@@ -2,7 +2,7 @@
 
 # BCH Stratum Inspector
 
-A transparency tool for Bitcoin Cash miners.  Connects to mining pools via the **Stratum protocol**, fetches the block template, and **decodes the coinbase transaction** — letting you see exactly who gets paid and how the block reward is distributed.
+A transparency tool for Bitcoin Cash miners.  Connects to mining pools via the **Stratum protocol** (TCP and TLS), fetches the block template, and **decodes the coinbase transaction** — letting you see exactly who gets paid and how the block reward is distributed.
 
 ## Motivation
 
@@ -19,6 +19,7 @@ This tool connects to any BCH pool's Stratum endpoint and reveals exactly what's
 | **Block Metadata** | Height (BIP-34), reward, previous hash (explorer format) |
 | **Difficulty** | Compact nBits → human-readable with auto-scaling (K/M/G/T/P/E) |
 | **Multi-Pool** | Query all configured pools in one run, or pick one via CLI |
+| **TLS Auto-Detect** | Automatically tries TLS first, falls back to plain TCP — zero config |
 | **Zero Dependencies** | Pure Python standard library — no `pip install` needed |
 
 ## Quick Start
@@ -140,7 +141,7 @@ If you're pointed at a "BTC solo pool" but this tool shows its Stratum endpoint 
 ```
 ┌──────────┐  Stratum   ┌────────────┐
 │  Script  │◄──────────►│  BCH Pool  │
-└────┬─────┘  TCP/JSON  └────────────┘
+└────┬─────┘ TCP or TLS  └────────────┘
      │
      ▼
  1. mining.subscribe  →  get ExtraNonce
