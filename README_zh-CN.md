@@ -168,6 +168,13 @@ Coinbase 交易是每个区块的第一笔交易。它没有真正的输入 — 
 - Python 3.6+
 - 无需外部包
 
+## 捐赠
+
+如果这个工具对你有帮助，请考虑请我喝杯咖啡 ☕
+
+- **BTC:** `bc1qftzsn5py6gcy5lzlc9hc6usmqy8wqgzsamg7fh`
+- **BCH:** `bitcoincash:qqj9rrt85mzdhf3mknppz7xvkxnxlxel9ynfku43nh`
+
 ## 许可证
 
 MIT — 由 [Harshy's Pool](https://harshy.site/)（BCH Solo 矿池）开发。

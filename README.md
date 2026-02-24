@@ -168,6 +168,13 @@ Both formats point to the same HASH-160 on the blockchain.
 - Python 3.6+
 - No external packages
 
+## Donate
+
+If this tool helped you, consider buying me a coffee ☕
+
+- **BTC:** `bc1qftzsn5py6gcy5lzlc9hc6usmqy8wqgzsamg7fh`
+- **BCH:** `bitcoincash:qqj9rrt85mzdhf3mknppz7xvkxnxlxel9ynfku43nh`
+
 ## License
 
 MIT — built by [Harshy's Pool](https://harshy.site/), a BCH solo mining pool.
